@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Inherit Partner Form to add WhatsApp fields -->
+    <record id="view_partner_form_whatsapp" model="ir.ui.view">
+        <field name="name">res.partner.form.whatsapp</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <!-- Add WhatsApp button in button box -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_send_whatsapp" type="object"
+                        class="oe_stat_button" icon="fa-whatsapp"
+                        invisible="not waha_whatsapp_number"
+                        groups="waha_whatsapp_suite.group_waha_whatsapp_user">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_text">Send</span>
+                        <span class="o_stat_text">WhatsApp</span>
+                    </div>
+                </button>
+                <button name="action_view_whatsapp_messages" type="object"
+                        class="oe_stat_button" icon="fa-comments"
+                        invisible="waha_whatsapp_message_count == 0"
+                        groups="waha_whatsapp_suite.group_waha_whatsapp_user">
+                    <field name="waha_whatsapp_message_count" widget="statinfo" string="Messages"/>
+                </button>
+            </xpath>
+
+            <!-- Add WhatsApp number field (computed from mobile/phone) -->
+            <xpath expr="//field[@name='mobile']" position="after">
+                <field name="waha_whatsapp_number" widget="phone"
+                       readonly="1"
+                       string="WhatsApp Number (Auto)"
+                       help="Auto-computed from Mobile or Phone field"
+                       groups="waha_whatsapp_suite.group_waha_whatsapp_user"/>
+                <field name="waha_whatsapp_opt_out"
+                       string="WhatsApp Opt-out"
+                       groups="waha_whatsapp_suite.group_waha_whatsapp_user"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Server action: add selected contacts to a WhatsApp campaign -->
+    <record id="action_partner_add_to_campaign" model="ir.actions.server">
+        <field name="name">Add to WhatsApp Campaign</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="binding_view_types">list,kanban</field>
+        <field name="groups_id" eval="[(4, ref('waha_whatsapp_suite.group_waha_whatsapp_user'))]"/>
+        <field name="state">code</field>
+        <field name="code">action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Add to WhatsApp Campaign',
+    'res_model': 'waha.whatsapp.add.to.campaign.wizard',
+    'view_mode': 'form',
+    'target': 'new',
+    'context': {'active_ids': records.ids, 'active_model': 'res.partner'},
+}</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_add_to_campaign_wizard_form" model="ir.ui.view">
+        <field name="name">waha.whatsapp.add.to.campaign.wizard.form</field>
+        <field name="model">waha.whatsapp.add.to.campaign.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Add to WhatsApp Campaign">
+                <group>
+                    <field name="mode" widget="radio"/>
+                    <field name="campaign_id" invisible="mode != 'existing'"
+                           required="mode == 'existing'" options="{'no_create': True}"/>
+                    <field name="new_campaign_name" invisible="mode != 'new'"
+                           required="mode == 'new'"/>
+                    <field name="session_id" invisible="mode != 'new'" required="mode == 'new'"/>
+                    <field name="partner_ids" widget="many2many_tags" readonly="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Add" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

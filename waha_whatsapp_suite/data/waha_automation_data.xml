@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Example canned replies -->
+        <record id="canned_reply_greeting" model="waha.whatsapp.canned.reply">
+            <field name="name">Greeting</field>
+            <field name="shortcut">hi</field>
+            <field name="body">Hello! Thanks for reaching out. How can we help you today?</field>
+        </record>
+
+        <record id="canned_reply_hours" model="waha.whatsapp.canned.reply">
+            <field name="name">Working Hours</field>
+            <field name="shortcut">hours</field>
+            <field name="body">Our team is available Sunday to Thursday, 9:00 AM to 5:00 PM.</field>
+        </record>
+
+        <!-- Example auto-reply: opt-out on STOP -->
+        <record id="autoreply_stop" model="waha.whatsapp.autoreply">
+            <field name="name">Unsubscribe on STOP</field>
+            <field name="sequence">1</field>
+            <field name="match_type">equals</field>
+            <field name="keyword">stop,unsubscribe,الغاء,إلغاء</field>
+            <field name="set_opt_out" eval="True"/>
+            <field name="reply_body">You have been unsubscribed and will no longer receive campaign messages. Reply START to opt back in.</field>
+            <field name="stop_after_match" eval="True"/>
+        </record>
+
+        <record id="autoreply_start" model="waha.whatsapp.autoreply">
+            <field name="name">Resubscribe on START</field>
+            <field name="sequence">2</field>
+            <field name="match_type">equals</field>
+            <field name="keyword">start</field>
+            <field name="clear_opt_out" eval="True"/>
+            <field name="reply_body">Welcome back! You are subscribed again.</field>
+            <field name="stop_after_match" eval="True"/>
+            <field name="active" eval="False"/>
+        </record>
+
+    </data>
+</odoo>
