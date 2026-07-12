@@ -70,6 +70,10 @@ class WahaWhatsAppMessage(models.Model):
     # Set once the inbound side-effects (conversation update, auto-replies) have
     # run, so duplicate webhooks ('message' + 'message.any') don't re-trigger.
     inbound_processed = fields.Boolean('Inbound Handled', default=False, copy=False)
+    # Flagged by the webhook when an incoming message needs auto-reply evaluation.
+    # A single-threaded cron (cron_run_autoreplies) does the actual sending, so no
+    # WhatsApp message is ever sent from inside the concurrent webhook transaction.
+    needs_autoreply = fields.Boolean('Auto-reply Pending', default=False, copy=False, index=True)
 
     def _claim_inbound_processing(self):
         """Atomically mark this message as inbound-processed. Returns True only

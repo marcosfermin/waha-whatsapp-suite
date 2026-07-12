@@ -101,6 +101,29 @@ class WahaWhatsappAutoreply(models.Model):
         return self.hour_from <= current <= self.hour_to
 
     @api.model
+    def cron_run_autoreplies(self):
+        """Send auto-replies for messages the webhook flagged. Runs single-
+        threaded from a scheduled action, so the (irreversible) WhatsApp send
+        never happens inside the concurrent, auto-retried webhook transaction —
+        which is what previously caused reply floods."""
+        Message = self.env['waha.whatsapp.message']
+        pending = Message.search([('needs_autoreply', '=', True)], order='id', limit=200)
+        if pending:
+            _logger.info("Auto-reply cron: %s message(s) to process", len(pending))
+        for msg in pending:
+            # Clear the flag and COMMIT *before* sending. If the send or the
+            # process then fails/restarts, the message is not reprocessed, so a
+            # reply is never sent twice (at worst a single reply is missed).
+            msg.needs_autoreply = False
+            self.env.cr.commit()
+            try:
+                self._run_for_message(msg)
+            except Exception:  # noqa: BLE001
+                _logger.exception("Auto-reply cron failed for message %s", msg.id)
+                self.env.cr.rollback()
+            self.env.cr.commit()
+
+    @api.model
     def _run_for_message(self, message):
         """Evaluate active rules against an incoming message and apply the
         first matching rule's actions. Called from the inbound webhook."""

@@ -137,28 +137,22 @@ class WhatsAppWebhookController(http.Controller):
             _logger.info(f"Incoming message processed: {message.id} from {phone_number or from_contact}")
             self._notify_new_message(message)
 
-            # Post-create side-effects must run exactly once even though WAHA
-            # fires 'message' and 'message.any' for the same message.
+            # Post-create side-effects run exactly once (WAHA fires 'message' and
+            # 'message.any' for the same message). The auto-reply is NOT sent from
+            # here: the webhook only FLAGS the message, and a single-threaded cron
+            # (cron_run_autoreplies) does the sending. Keeping every network send
+            # out of the concurrent, auto-retried webhook transaction makes an
+            # auto-reply flood structurally impossible.
             if message and message._claim_inbound_processing():
-                # CRITICAL: commit the claim before any network side effect.
-                # These handlers send real WhatsApp messages (auto-replies), and
-                # Odoo auto-retries the whole request on a serialization failure.
-                # Without a committed claim, every retry rolls back and RE-SENDS,
-                # flooding the contact. Committing here makes the retry see the
-                # message as already handled and skip the resend.
-                try:
-                    request.env.cr.commit()
-                except Exception as e:
-                    _logger.error(f"Could not commit inbound claim: {e}")
                 try:
                     request.env['waha.whatsapp.chat.thread'].sudo()._touch_from_message(message)
                 except Exception as e:
                     _logger.error(f"Error updating conversation thread: {e}")
                 if message.direction == 'incoming':
                     try:
-                        request.env['waha.whatsapp.autoreply'].sudo()._run_for_message(message)
+                        message.needs_autoreply = True
                     except Exception as e:
-                        _logger.error(f"Error running auto-reply rules: {e}")
+                        _logger.error(f"Error flagging message for auto-reply: {e}")
 
         except Exception as e:
             _logger.error(f"Error processing incoming message: {e}")
