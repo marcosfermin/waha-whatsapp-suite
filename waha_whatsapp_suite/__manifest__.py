@@ -27,7 +27,7 @@
     ''',
     'author': 'Marcos Fermin',
     'website': 'https://www.marcosfermin.com',
-    'depends': ['base', 'mail', 'contacts', 'base_automation', 'crm', 'sale', 'project'],
+    'depends': ['base', 'mail', 'contacts', 'base_automation', 'crm', 'sale', 'project', 'queue_job'],
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
