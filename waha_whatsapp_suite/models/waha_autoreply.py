@@ -172,13 +172,11 @@ class WahaWhatsappAutoreply(models.Model):
             return
         session = message.session_id
 
-        # A stale stored status must not silently block a reply: we just received
-        # a message on this session, so refresh the live status before giving up.
-        if session.status != 'working':
-            try:
-                session.action_refresh_status()
-            except Exception:  # noqa: BLE001
-                pass
+        # Don't refresh the session status here — that writes to the shared
+        # session row and, under the concurrency of inbound webhooks, causes
+        # serialization failures / retries (which resend the reply). A received
+        # message already proves the session is live, so just skip on the rare
+        # stale-not-working case rather than forcing a write.
         if session.status != 'working':
             _logger.warning("Auto-reply '%s': session '%s' not working (status=%s) — reply skipped",
                             self.name, session.name, session.status)
