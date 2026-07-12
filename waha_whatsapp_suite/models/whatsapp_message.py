@@ -93,6 +93,32 @@ class WahaWhatsAppMessage(models.Model):
             self.invalidate_recordset(['inbound_processed'])
         return won
 
+    def _claim_autoreply(self):
+        """Atomically claim this message for auto-reply (clears needs_autoreply).
+        Returns True only for the winner, so the queue job and the fallback cron
+        can never both send a reply for the same message."""
+        self.ensure_one()
+        self.env.cr.execute(
+            "UPDATE waha_whatsapp_message SET needs_autoreply = FALSE "
+            "WHERE id = %s AND needs_autoreply = TRUE RETURNING id",
+            (self.id,),
+        )
+        won = bool(self.env.cr.fetchone())
+        if won:
+            self.invalidate_recordset(['needs_autoreply'])
+        return won
+
+    def _job_process_autoreply(self):
+        """queue_job entry point: send the auto-reply for this message if it is
+        still pending. Idempotent — the atomic claim is committed before the
+        send, so a job retry (or the fallback cron) never re-sends."""
+        self.ensure_one()
+        if not self._claim_autoreply():
+            return
+        # Persist the claim before the irreversible WhatsApp send.
+        self.env.cr.commit()
+        self.env['waha.whatsapp.autoreply']._run_for_message(self)
+
     attachment_mimetype = fields.Char(
         string='MIME Type', compute='_compute_attachment_info', store=False)
     attachment_file_size = fields.Char(

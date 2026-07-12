@@ -163,6 +163,13 @@ waha_whatsapp_helpdesk/            # optional bridge — auto-installs with Help
   audio** (the reply text is sent first, then each file as a separate message), opt the
   contact out (STOP keyword), add tags, assign the conversation, or create a CRM lead /
   Helpdesk ticket.
+- **How replies are sent (flood-safe):** the webhook never sends inline — it flags the
+  message and the reply is dispatched **out of band**, so a webhook retry or duplicate
+  delivery can never flood the contact. By default a scheduled action (**Send WhatsApp
+  Auto-replies**, every minute) sends pending replies. For **near-instant** replies,
+  install the OCA **`queue_job`** module and run its job runner — the module auto-detects
+  it and dispatches an immediate background job per message (the cron stays as a fallback).
+  An atomic claim guarantees exactly one reply whether the job or the cron sends it.
 
 ### Shared Inbox & Canned Replies
 - **WhatsApp > Inbox**: a kanban/list of conversations (per session + chat) with
