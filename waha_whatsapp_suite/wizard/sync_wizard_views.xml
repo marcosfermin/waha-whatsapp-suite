@@ -20,6 +20,7 @@
                 <group string="Contacts">
                     <field name="sync_contacts"/>
                     <field name="only_named_contacts" invisible="not sync_contacts"/>
+                    <field name="update_contact_names" invisible="not sync_contacts"/>
                 </group>
                 <group string="Chats &amp; Messages">
                     <field name="sync_messages"/>

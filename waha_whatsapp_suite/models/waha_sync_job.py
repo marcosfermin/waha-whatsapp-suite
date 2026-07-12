@@ -21,6 +21,7 @@ class WahaWhatsappSyncJob(models.Model):
 
     sync_contacts = fields.Boolean('Sync Contacts', default=True)
     only_named_contacts = fields.Boolean('Only saved contacts', default=True)
+    update_contact_names = fields.Boolean('Update names from phone', default=False)
     sync_messages = fields.Boolean('Sync Messages', default=True)
     message_limit = fields.Integer('Messages / chat', default=100)
     include_groups = fields.Boolean('Include groups', default=False)
@@ -90,7 +91,8 @@ class WahaWhatsappSyncJob(models.Model):
 
         if self.state == 'queued':
             if self.sync_contacts and not self.contacts_done:
-                res = session.sync_contacts(only_named=self.only_named_contacts)
+                res = session.sync_contacts(only_named=self.only_named_contacts,
+                                            update_names=self.update_contact_names)
                 self.write({
                     'contacts_done': True,
                     'contacts_created': res['created'],
