@@ -165,11 +165,14 @@ waha_whatsapp_helpdesk/            # optional bridge — auto-installs with Help
   Helpdesk ticket.
 - **How replies are sent (flood-safe):** the webhook never sends inline — it flags the
   message and the reply is dispatched **out of band**, so a webhook retry or duplicate
-  delivery can never flood the contact. By default a scheduled action (**Send WhatsApp
-  Auto-replies**, every minute) sends pending replies. For **near-instant** replies,
-  install the OCA **`queue_job`** module and run its job runner — the module auto-detects
-  it and dispatches an immediate background job per message (the cron stays as a fallback).
-  An atomic claim guarantees exactly one reply whether the job or the cron sends it.
+  delivery can never flood the contact. This module **requires OCA `queue_job`** (a hard
+  dependency): each inbound message dispatches an immediate background job for
+  **near-instant** replies. A built-in scheduled action (**Send WhatsApp Auto-replies**,
+  every minute) is a fallback if the job runner is ever down, and an atomic claim
+  guarantees exactly one reply whether the job or the cron sends it.
+  - Enable the runner in `odoo.conf`: `server_wide_modules = web,queue_job` with `workers >= 1`.
+  - The self-hosted package bundles `queue_job`; the Odoo Apps store resolves it as a
+    dependency automatically.
 
 ### Shared Inbox & Canned Replies
 - **WhatsApp > Inbox**: a kanban/list of conversations (per session + chat) with
