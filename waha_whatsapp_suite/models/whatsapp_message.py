@@ -75,9 +75,13 @@ class WahaWhatsAppMessage(models.Model):
         """Atomically mark this message as inbound-processed. Returns True only
         for the caller that wins the claim, so side-effects run exactly once."""
         self.ensure_one()
+        # COALESCE: rows inserted via the raw-SQL path below leave this column
+        # NULL (Odoo adds no SQL default for default=False), and `NULL = FALSE`
+        # is NULL — not TRUE — so a plain `= FALSE` would never match and the
+        # claim (hence auto-replies / inbox updates) would never fire.
         self.env.cr.execute(
             "UPDATE waha_whatsapp_message SET inbound_processed = TRUE "
-            "WHERE id = %s AND inbound_processed = FALSE RETURNING id",
+            "WHERE id = %s AND COALESCE(inbound_processed, FALSE) = FALSE RETURNING id",
             (self.id,),
         )
         won = bool(self.env.cr.fetchone())
@@ -182,8 +186,8 @@ class WahaWhatsAppMessage(models.Model):
                     INSERT INTO waha_whatsapp_message
                         (name, session_id, partner_id, phone_number, chat_id, direction,
                          message_type, status, text, waha_message_id, attachment_id,
-                         create_date, write_date)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now(), now())
+                         inbound_processed, create_date, write_date)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, false, now(), now())
                     ON CONFLICT (waha_message_id)
                         WHERE waha_message_id IS NOT NULL
                           AND waha_message_id != ''
