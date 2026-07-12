@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Message analytics -->
+    <record id="view_whatsapp_message_graph" model="ir.ui.view">
+        <field name="name">waha.whatsapp.message.graph</field>
+        <field name="model">waha.whatsapp.message</field>
+        <field name="arch" type="xml">
+            <graph string="WhatsApp Messages" sample="1" type="bar">
+                <field name="create_date" interval="day"/>
+                <field name="direction"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_whatsapp_message_pivot" model="ir.ui.view">
+        <field name="name">waha.whatsapp.message.pivot</field>
+        <field name="model">waha.whatsapp.message</field>
+        <field name="arch" type="xml">
+            <pivot string="WhatsApp Messages" sample="1">
+                <field name="session_id" type="row"/>
+                <field name="status" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_whatsapp_message_report" model="ir.actions.act_window">
+        <field name="name">Message Analytics</field>
+        <field name="res_model">waha.whatsapp.message</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="context">{'search_default_group_status': 1}</field>
+    </record>
+
+    <!-- Campaign analytics -->
+    <record id="view_waha_campaign_pivot" model="ir.ui.view">
+        <field name="name">waha.whatsapp.campaign.pivot</field>
+        <field name="model">waha.whatsapp.campaign</field>
+        <field name="arch" type="xml">
+            <pivot string="Campaign Performance" sample="1">
+                <field name="name" type="row"/>
+                <field name="sent_count" type="measure"/>
+                <field name="delivered_count" type="measure"/>
+                <field name="read_count" type="measure"/>
+                <field name="failed_count" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_waha_campaign_graph" model="ir.ui.view">
+        <field name="name">waha.whatsapp.campaign.graph</field>
+        <field name="model">waha.whatsapp.campaign</field>
+        <field name="arch" type="xml">
+            <graph string="Campaign Performance" sample="1" type="bar">
+                <field name="name"/>
+                <field name="sent_count" type="measure"/>
+                <field name="read_count" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_waha_campaign_report" model="ir.actions.act_window">
+        <field name="name">Campaign Analytics</field>
+        <field name="res_model">waha.whatsapp.campaign</field>
+        <field name="view_mode">graph,pivot,list</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="waha_whatsapp_suite.WahaQrCode">
+        <div class="text-center o_waha_qr">
+            <t t-if="state.connected">
+                <div class="alert alert-success d-inline-block" role="alert">
+                    <i class="fa fa-check-circle me-1"/> Connected! This session is now linked to WhatsApp.
+                </div>
+            </t>
+            <t t-else="">
+                <img t-att-src="src"
+                     t-on-load="onImgLoad"
+                     t-on-error="onImgError"
+                     alt="WhatsApp QR Code"
+                     class="img-fluid border rounded p-2 bg-white"
+                     t-att-style="state.imgReady ? 'max-width: 320px;' : 'display: none;'"/>
+                <p t-if="!state.imgReady" class="text-muted mt-2">
+                    Waiting for the QR code… it will appear in a moment.
+                </p>
+                <p t-else="" class="text-muted mt-2">
+                    On your phone: WhatsApp → <b>Linked Devices</b> → <b>Link a Device</b>, then scan.
+                    The code refreshes automatically.
+                </p>
+            </t>
+        </div>
+    </t>
+
+</templates>

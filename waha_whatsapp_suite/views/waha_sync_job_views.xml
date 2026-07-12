@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_waha_sync_job_list" model="ir.ui.view">
+        <field name="name">waha.whatsapp.sync.job.list</field>
+        <field name="model">waha.whatsapp.sync.job</field>
+        <field name="arch" type="xml">
+            <tree string="Sync Jobs" decoration-info="state in ('queued','collecting','running')"
+                  decoration-success="state=='done'" decoration-danger="state=='failed'"
+                  decoration-muted="state=='cancelled'" create="0">
+                <field name="create_date"/>
+                <field name="session_id"/>
+                <field name="state" widget="badge"/>
+                <field name="progress" widget="progressbar"/>
+                <field name="cursor" string="Chats done"/>
+                <field name="total_chats"/>
+                <field name="imported_messages"/>
+                <field name="contacts_created"/>
+                <button name="action_cancel" type="object" string="Cancel" icon="fa-stop"
+                        class="btn-link" invisible="state not in ('queued','collecting','running')"/>
+                <button name="action_requeue" type="object" string="Re-run" icon="fa-refresh"
+                        class="btn-link" invisible="state in ('queued','collecting','running')"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_waha_sync_job_form" model="ir.ui.view">
+        <field name="name">waha.whatsapp.sync.job.form</field>
+        <field name="model">waha.whatsapp.sync.job</field>
+        <field name="arch" type="xml">
+            <form string="Sync Job" create="0">
+                <header>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state not in ('queued','collecting','running')"/>
+                    <button name="action_requeue" type="object" string="Re-run"
+                            class="btn-primary" invisible="state in ('queued','collecting','running')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="queued,collecting,running,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="display_name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Scope">
+                            <field name="session_id" readonly="1"/>
+                            <field name="sync_contacts" readonly="1"/>
+                            <field name="only_named_contacts" readonly="1" invisible="not sync_contacts"/>
+                            <field name="sync_messages" readonly="1"/>
+                            <field name="message_limit" readonly="1" invisible="not sync_messages"/>
+                            <field name="include_groups" readonly="1" invisible="not sync_messages"/>
+                            <field name="chats_per_run"/>
+                        </group>
+                        <group string="Progress">
+                            <field name="progress" widget="progressbar"/>
+                            <field name="cursor" string="Chats processed"/>
+                            <field name="total_chats"/>
+                            <field name="imported_messages"/>
+                            <field name="skipped_messages"/>
+                            <field name="contacts_created"/>
+                            <field name="contacts_updated"/>
+                            <field name="contacts_skipped"/>
+                        </group>
+                    </group>
+                    <group string="Error" invisible="not error">
+                        <field name="error" nolabel="1" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_waha_sync_job" model="ir.actions.act_window">
+        <field name="name">Sync Jobs</field>
+        <field name="res_model">waha.whatsapp.sync.job</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

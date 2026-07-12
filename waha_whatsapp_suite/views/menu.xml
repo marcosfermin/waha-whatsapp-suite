@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Main WhatsApp Menu - متاح للجميع -->
+    <menuitem id="menu_waha_whatsapp_main"
+              name="Waha WhatsApp"
+              web_icon="waha_whatsapp_suite,static/description/icon.png"
+              groups="waha_whatsapp_suite.group_waha_whatsapp_user"
+              sequence="100"/>
+
+    <!-- Messages Menu - للمستخدمين والمديرين -->
+    <menuitem id="menu_waha_whatsapp_messages"
+              name="Messages"
+              parent="menu_waha_whatsapp_main"
+              groups="waha_whatsapp_suite.group_waha_whatsapp_user"
+              sequence="1"/>
+
+    <menuitem id="menu_whatsapp_all_messages"
+              name="All Messages"
+              parent="menu_waha_whatsapp_messages"
+              action="action_whatsapp_message"
+              groups="waha_whatsapp_suite.group_waha_whatsapp_user"
+              sequence="1"/>
+
+    <menuitem id="menu_send_whatsapp_message"
+              name="Send Message"
+              parent="menu_waha_whatsapp_messages"
+              action="action_send_whatsapp_wizard"
+              groups="waha_whatsapp_suite.group_waha_whatsapp_user"
+              sequence="2"/>
+
+    <!-- Inbox (shared conversations) -->
+    <menuitem id="menu_waha_chat_inbox"
+              name="Inbox"
+              parent="menu_waha_whatsapp_main"
+              action="action_waha_chat_thread"
+              groups="waha_whatsapp_suite.group_waha_whatsapp_user"
+              sequence="5"/>
+
+    <!-- Campaigns Menu -->
+    <menuitem id="menu_waha_campaigns"
+              name="Campaigns"
+              parent="menu_waha_whatsapp_main"
+              action="action_waha_campaign"
+              groups="waha_whatsapp_suite.group_waha_whatsapp_user"
+              sequence="10"/>
+
+    <!-- Automation Menu - managers -->
+    <menuitem id="menu_waha_whatsapp_automation"
+              name="Automation"
+              parent="menu_waha_whatsapp_main"
+              groups="waha_whatsapp_suite.group_waha_whatsapp_manager"
+              sequence="15"/>
+
+    <menuitem id="menu_waha_autoreply"
+              name="Auto-reply Rules"
+              parent="menu_waha_whatsapp_automation"
+              action="action_waha_autoreply"
+              groups="waha_whatsapp_suite.group_waha_whatsapp_manager"
+              sequence="1"/>
+
+    <menuitem id="menu_waha_canned_reply"
+              name="Canned Replies"
+              parent="menu_waha_whatsapp_automation"
+              action="action_waha_canned_reply"
+              groups="waha_whatsapp_suite.group_waha_whatsapp_manager"
+              sequence="2"/>
+
+    <!-- Reporting Menu -->
+    <menuitem id="menu_waha_whatsapp_reporting"
+              name="Reporting"
+              parent="menu_waha_whatsapp_main"
+              groups="waha_whatsapp_suite.group_waha_whatsapp_manager"
+              sequence="20"/>
+
+    <menuitem id="menu_waha_message_report"
+              name="Message Analytics"
+              parent="menu_waha_whatsapp_reporting"
+              action="action_whatsapp_message_report"
+              groups="waha_whatsapp_suite.group_waha_whatsapp_manager"
+              sequence="1"/>
+
+    <menuitem id="menu_waha_campaign_report"
+              name="Campaign Analytics"
+              parent="menu_waha_whatsapp_reporting"
+              action="action_waha_campaign_report"
+              groups="waha_whatsapp_suite.group_waha_whatsapp_manager"
+              sequence="2"/>
+
+    <!-- Templates Menu - للمديرين فقط -->
+    <menuitem id="menu_waha_whatsapp_templates"
+              name="Templates"
+              parent="menu_waha_whatsapp_main"
+              groups="waha_whatsapp_suite.group_waha_whatsapp_manager"
+              sequence="2"/>
+
+
+    <menuitem id="menu_whatsapp_message_templates"
+              name="Message Templates"
+              parent="menu_waha_whatsapp_templates"
+              action="action_whatsapp_template"
+              groups="waha_whatsapp_suite.group_waha_whatsapp_manager"
+              sequence="1"/>
+
+    <!-- Sessions Menu - للمديرين فقط -->
+    <menuitem id="menu_waha_whatsapp_sessions"
+              name="Sessions"
+              parent="menu_waha_whatsapp_main"
+              groups="waha_whatsapp_suite.group_waha_whatsapp_manager"
+              sequence="3"/>
+
+
+    <menuitem id="menu_waha_sessions"
+              name="Manage Sessions"
+              parent="menu_waha_whatsapp_sessions"
+              action="action_waha_session"
+              groups="waha_whatsapp_suite.group_waha_whatsapp_manager"
+              sequence="10"/>
+
+    <menuitem id="menu_waha_sync_jobs"
+              name="Sync Jobs"
+              parent="menu_waha_whatsapp_sessions"
+              action="action_waha_sync_job"
+              groups="waha_whatsapp_suite.group_waha_whatsapp_manager"
+              sequence="20"/>
+
+</odoo>
