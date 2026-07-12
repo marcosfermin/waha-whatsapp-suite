@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_waha_campaign_list" model="ir.ui.view">
+        <field name="name">waha.whatsapp.campaign.list</field>
+        <field name="model">waha.whatsapp.campaign</field>
+        <field name="arch" type="xml">
+            <list string="WhatsApp Campaigns" decoration-success="state=='done'"
+                  decoration-info="state=='running'" decoration-muted="state=='cancelled'">
+                <field name="name"/>
+                <field name="session_id"/>
+                <field name="state" widget="badge"
+                       decoration-success="state=='done'" decoration-info="state=='running'"/>
+                <field name="scheduled_date"/>
+                <field name="recipient_count" string="Recipients"/>
+                <field name="sent_count" string="Sent"/>
+                <field name="delivered_count" string="Delivered"/>
+                <field name="read_count" string="Read"/>
+                <field name="failed_count" string="Failed"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_waha_campaign_form" model="ir.ui.view">
+        <field name="name">waha.whatsapp.campaign.form</field>
+        <field name="model">waha.whatsapp.campaign</field>
+        <field name="arch" type="xml">
+            <form string="WhatsApp Campaign">
+                <header>
+                    <button name="action_start" type="object" string="Send Now"
+                            class="btn-primary" invisible="state not in ['draft']"/>
+                    <button name="action_schedule" type="object" string="Schedule / Launch"
+                            class="btn-primary" invisible="state not in ['draft']"/>
+                    <button name="action_test_send" type="object" string="Test Send to Me"
+                            invisible="state not in ['draft', 'scheduled']"/>
+                    <button name="action_build_recipients" type="object" string="Refresh Recipients"
+                            invisible="state not in ['draft', 'scheduled', 'running']"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state in ['done', 'cancelled']"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft"
+                            invisible="state not in ['cancelled', 'done']"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,scheduled,running,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_messages" type="object"
+                                class="oe_stat_button" icon="fa-comments">
+                            <field name="sent_count" widget="statinfo" string="Sent"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Campaign Name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="session_id"/>
+                            <field name="template_id"/>
+                            <field name="attachment_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="scheduled_date"/>
+                            <field name="throttle_per_minute"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="body" placeholder="Message body. Uses template variables when a template is selected."/>
+                    </group>
+                    <notebook>
+                        <page string="Recipients">
+                            <group>
+                                <field name="recipient_source" widget="radio"/>
+                                <field name="partner_ids" widget="many2many_tags"
+                                       invisible="recipient_source != 'partners'"
+                                       options="{'no_create': True}"/>
+                                <field name="recipient_domain" widget="domain"
+                                       options="{'model': 'res.partner'}"
+                                       invisible="recipient_source != 'domain'"/>
+                            </group>
+                            <separator string="Statistics"/>
+                            <group>
+                                <group>
+                                    <field name="recipient_count"/>
+                                    <field name="queued_count"/>
+                                    <field name="skipped_count"/>
+                                </group>
+                                <group>
+                                    <field name="sent_count"/>
+                                    <field name="delivered_count"/>
+                                    <field name="read_count"/>
+                                    <field name="failed_count"/>
+                                </group>
+                            </group>
+                            <field name="recipient_ids" readonly="1">
+                                <list decoration-success="state in ['sent','delivered','read']"
+                                      decoration-danger="state=='failed'" decoration-muted="state in ['skipped','opted_out']">
+                                    <field name="partner_id"/>
+                                    <field name="phone"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="sent_date"/>
+                                    <field name="error"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_waha_campaign_search" model="ir.ui.view">
+        <field name="name">waha.whatsapp.campaign.search</field>
+        <field name="model">waha.whatsapp.campaign</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="session_id"/>
+                <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+                <filter string="Running" name="running" domain="[('state','=','running')]"/>
+                <filter string="Done" name="done" domain="[('state','=','done')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Session" name="group_session" context="{'group_by': 'session_id'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_waha_campaign" model="ir.actions.act_window">
+        <field name="name">WhatsApp Campaigns</field>
+        <field name="res_model">waha.whatsapp.campaign</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first WhatsApp campaign</p>
+            <p>Send a personalized message to many contacts at once, with throttling and scheduling.</p>
+        </field>
+    </record>
+
+</odoo>

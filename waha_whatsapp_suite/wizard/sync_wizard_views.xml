@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_waha_sync_wizard_form" model="ir.ui.view">
+        <field name="name">waha.whatsapp.sync.wizard.form</field>
+        <field name="model">waha.whatsapp.sync.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Sync from Phone">
+                <div class="alert alert-info" role="alert">
+                    This imports data straight from the linked phone via WAHA. Large
+                    histories can take a while; progress is saved as it goes and it is
+                    safe to run again — nothing is duplicated.
+                </div>
+                <group>
+                    <field name="session_id" options="{'no_create': True}"/>
+                    <field name="run_mode" widget="radio"/>
+                    <field name="chats_per_run"
+                           invisible="run_mode != 'background' or not sync_messages"/>
+                </group>
+                <group string="Contacts">
+                    <field name="sync_contacts"/>
+                    <field name="only_named_contacts" invisible="not sync_contacts"/>
+                </group>
+                <group string="Chats &amp; Messages">
+                    <field name="sync_messages"/>
+                    <field name="message_limit" invisible="not sync_messages"/>
+                    <field name="include_groups" invisible="not sync_messages"/>
+                </group>
+                <footer>
+                    <button name="action_sync" type="object" string="Start Sync"
+                            class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>
