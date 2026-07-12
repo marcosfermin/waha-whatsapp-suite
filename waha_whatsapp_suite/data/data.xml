@@ -43,6 +43,17 @@
             <field name="active" eval="True"/>
         </record>
 
+        <!-- Cron Job for Auto-reply Dispatch (single-threaded, flood-safe) -->
+        <record id="cron_run_waha_autoreplies" model="ir.cron">
+            <field name="name">Send WhatsApp Auto-replies</field>
+            <field name="model_id" ref="model_waha_whatsapp_autoreply"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_run_autoreplies()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="active" eval="True"/>
+        </record>
+
         <!-- Cron Job for Background Phone Sync -->
         <record id="cron_process_waha_sync_jobs" model="ir.cron">
             <field name="name">Process WhatsApp Sync Jobs</field>
