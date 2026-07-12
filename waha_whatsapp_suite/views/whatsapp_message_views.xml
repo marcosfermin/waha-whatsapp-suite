@@ -114,7 +114,7 @@
                 <filter string="This Week" name="week"
                         domain="[('create_date', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
 
-                <group expand="0" string="Group By">
+                <group name="group_by">
                     <filter string="Contact" name="group_partner" domain="[]" context="{'group_by': 'partner_id'}"/>
                     <filter string="Session" name="group_session" domain="[]" context="{'group_by': 'session_id'}"/>
                     <filter string="Status" name="group_status" domain="[]" context="{'group_by': 'status'}"/>

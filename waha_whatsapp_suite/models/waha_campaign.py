@@ -112,7 +112,7 @@ class WahaWhatsappCampaign(models.Model):
                 vals.append({
                     'campaign_id': campaign.id,
                     'partner_id': partner.id,
-                    'phone': partner.waha_whatsapp_number or partner.mobile or partner.phone or '',
+                    'phone': partner.waha_whatsapp_number or getattr(partner, 'mobile', '') or partner.phone or '',
                     'chat_id': chat_id,
                     'state': state,
                 })
@@ -278,10 +278,10 @@ class WahaWhatsappCampaignRecipient(models.Model):
     error = fields.Char('Error')
     sent_date = fields.Datetime('Sent On')
 
-    _sql_constraints = [
-        ('campaign_partner_uniq', 'unique(campaign_id, partner_id)',
-         'A contact can only appear once per campaign.'),
-    ]
+    _campaign_partner_uniq = models.Constraint(
+        'unique(campaign_id, partner_id)',
+        'A contact can only appear once per campaign.',
+    )
 
     def _sync_from_messages(self):
         """Advance recipient status to match the linked message delivery status."""

@@ -41,17 +41,19 @@ class ResPartner(models.Model):
         """Return the WhatsApp chat id (e.g. '2011...@c.us') for this partner,
         or an empty string when no usable number is available."""
         self.ensure_one()
-        number = self.waha_whatsapp_number or self.mobile or self.phone or ''
+        # Odoo 19 removed res.partner.mobile — read it defensively so the same
+        # code works on 17/18 (mobile present) and 19 (mobile absent).
+        number = self.waha_whatsapp_number or getattr(self, 'mobile', '') or self.phone or ''
         digits = re.sub(r'\D', '', number)
         if not digits:
             return ''
         return '%s@c.us' % digits
 
-    @api.depends('mobile', 'phone')
+    @api.depends(lambda self: [f for f in ('mobile', 'phone') if f in self._fields])
     def _compute_waha_whatsapp_number(self):
         """Compute WhatsApp number from mobile or phone, removing spaces and formatting"""
         for partner in self:
-            number = partner.mobile or partner.phone or ''
+            number = getattr(partner, 'mobile', '') or partner.phone or ''
             if number:
                 # Remove spaces, dashes, parentheses, and other formatting
                 cleaned_number = re.sub(r'[\s\-\(\)\.]', '', number)

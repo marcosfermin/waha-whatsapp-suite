@@ -14,9 +14,10 @@ class WahaWhatsappCannedReply(models.Model):
     active = fields.Boolean('Active', default=True)
     company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company)
 
-    _sql_constraints = [
-        ('shortcut_uniq', 'unique(shortcut, company_id)', 'The shortcut must be unique.'),
-    ]
+    _shortcut_uniq = models.Constraint(
+        'unique(shortcut, company_id)',
+        'The shortcut must be unique.',
+    )
 
     @api.model
     def expand(self, text):

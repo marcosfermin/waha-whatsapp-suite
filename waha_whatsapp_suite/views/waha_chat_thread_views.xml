@@ -105,7 +105,7 @@
                 <filter string="Open" name="open" domain="[('stage','=','open')]"/>
                 <filter string="Pending" name="pending" domain="[('stage','=','pending')]"/>
                 <filter string="Resolved" name="resolved" domain="[('stage','=','resolved')]"/>
-                <group expand="0" string="Group By">
+                <group name="group_by">
                     <filter string="Status" name="group_stage" context="{'group_by': 'stage'}"/>
                     <filter string="Assigned To" name="group_user" context="{'group_by': 'user_id'}"/>
                     <filter string="Session" name="group_session" context="{'group_by': 'session_id'}"/>

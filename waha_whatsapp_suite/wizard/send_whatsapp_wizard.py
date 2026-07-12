@@ -93,7 +93,7 @@ class WahaWhatsappSendWhatsAppWizard(models.TransientModel):
             # Get WhatsApp number from partner (computed from mobile/phone)
             if self.partner_id.waha_whatsapp_number:
                 self.phone_number = self.partner_id.waha_whatsapp_number
-            elif self.partner_id.mobile:
+            elif getattr(self.partner_id, 'mobile', ''):
                 # Fallback to mobile if computed field not yet available
                 self.phone_number = re.sub(r'[\s\-\(\)\.]', '', self.partner_id.mobile)
             elif self.partner_id.phone:

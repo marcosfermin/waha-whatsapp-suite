@@ -257,21 +257,20 @@ class WhatsAppWebhookController(http.Controller):
 
                 # ابحث بـ phone_sanitized أولاً (ده الأدق - أودو بيطبع فيه E.164 format)
                 # بعدين جرب mobile و phone كـ fallback
-                partner = Partner.search([
-                    '|', '|',
-                    ('phone_sanitized', '=', mobile),
-                    ('mobile', '=', mobile),
-                    ('phone', '=', mobile),
-                ], limit=1)
+                # 'mobile' was removed from res.partner in Odoo 19 — only search
+                # it where the field exists.
+                has_mobile = 'mobile' in Partner._fields
 
+                def _num_domain(val):
+                    terms = [('phone_sanitized', '=', val), ('phone', '=', val)]
+                    if has_mobile:
+                        terms.append(('mobile', '=', val))
+                    return ['|'] * (len(terms) - 1) + terms
+
+                partner = Partner.search(_num_domain(mobile), limit=1)
                 # لو مش لاقي، جرب بدون الـ + (على حالات قديمة)
                 if not partner:
-                    partner = Partner.search([
-                        '|', '|',
-                        ('phone_sanitized', '=', phone_number),
-                        ('mobile', '=', phone_number),
-                        ('phone', '=', phone_number),
-                    ], limit=1)
+                    partner = Partner.search(_num_domain(phone_number), limit=1)
 
             # No real phone (e.g. group @g.us): don't invent a partner from a
             # group id — return None and let the message store without one.
@@ -292,12 +291,10 @@ class WhatsAppWebhookController(http.Controller):
                             mobile or
                             'Unknown')
 
-                partner = Partner.create({
-                    'name': name,
-                    'mobile': mobile,
-                    'is_company': False,
-                })
-                _logger.info(f"Created new partner: {name} (mobile: {mobile})")
+                create_vals = {'name': name, 'is_company': False}
+                create_vals['mobile' if 'mobile' in Partner._fields else 'phone'] = mobile
+                partner = Partner.create(create_vals)
+                _logger.info(f"Created new partner: {name} (number: {mobile})")
 
                 # جيب profile picture
                 if session and contact_info:

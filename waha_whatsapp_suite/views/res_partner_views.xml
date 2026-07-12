@@ -26,8 +26,9 @@
                 </button>
             </xpath>
 
-            <!-- Add WhatsApp number field (computed from mobile/phone) -->
-            <xpath expr="//field[@name='mobile']" position="after">
+            <!-- Add WhatsApp number field (computed from mobile/phone).
+                 Anchored on 'phone' (present on all versions; Odoo 19 removed 'mobile'). -->
+            <xpath expr="//field[@name='phone']" position="after">
                 <field name="waha_whatsapp_number" widget="phone"
                        readonly="1"
                        string="WhatsApp Number (Auto)"
@@ -46,7 +47,7 @@
         <field name="model_id" ref="base.model_res_partner"/>
         <field name="binding_model_id" ref="base.model_res_partner"/>
         <field name="binding_view_types">list,kanban</field>
-        <field name="groups_id" eval="[(4, ref('waha_whatsapp_suite.group_waha_whatsapp_user'))]"/>
+        <field name="group_ids" eval="[(4, ref('waha_whatsapp_suite.group_waha_whatsapp_user'))]"/>
         <field name="state">code</field>
         <field name="code">action = {
     'type': 'ir.actions.act_window',

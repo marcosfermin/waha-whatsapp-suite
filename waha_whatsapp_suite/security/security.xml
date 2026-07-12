@@ -9,7 +9,6 @@
 
         <record id="group_waha_whatsapp_user" model="res.groups">
             <field name="name">WhatsApp User</field>
-            <field name="category_id" ref="module_category_waha_whatsapp_suite"/>
             <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
             <field name="comment">View and send messages</field>
         </record>
@@ -17,14 +16,13 @@
         <!-- WhatsApp Manager Group -->
         <record id="group_waha_whatsapp_manager" model="res.groups">
             <field name="name">WhatsApp Manager</field>
-            <field name="category_id" ref="module_category_waha_whatsapp_suite"/>
             <field name="implied_ids" eval="[(4, ref('group_waha_whatsapp_user'))]"/>
             <field name="comment">Manage templates and sessions</field>
         </record>
 
         <!-- Grant admin the manager group on install -->
         <record id="base.user_admin" model="res.users">
-            <field name="groups_id" eval="[(4, ref('group_waha_whatsapp_manager'))]"/>
+            <field name="group_ids" eval="[(4, ref('group_waha_whatsapp_manager'))]"/>
         </record>
 
         <!-- Record Rules -->

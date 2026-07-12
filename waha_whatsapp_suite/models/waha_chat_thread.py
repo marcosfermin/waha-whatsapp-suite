@@ -28,10 +28,10 @@ class WahaWhatsappChatThread(models.Model):
     unread_count = fields.Integer('Unread', default=0)
     company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company)
 
-    _sql_constraints = [
-        ('session_chat_uniq', 'unique(session_id, chat_id)',
-         'A conversation already exists for this session and chat.'),
-    ]
+    _session_chat_uniq = models.Constraint(
+        'unique(session_id, chat_id)',
+        'A conversation already exists for this session and chat.',
+    )
 
     @api.depends('partner_id', 'partner_id.name', 'phone_number', 'chat_id')
     def _compute_name(self):

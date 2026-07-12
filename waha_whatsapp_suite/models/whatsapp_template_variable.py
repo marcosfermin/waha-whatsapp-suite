@@ -30,7 +30,7 @@ class WhatsAppTemplateVariable(models.Model):
         if self.field_type == 'user_name':
             return self.env.user.name
         elif self.field_type == 'user_mobile':
-            return self.env.user.mobile or ''
+            return getattr(self.env.user, 'mobile', '') or ''
         elif self.field_type == 'user_company':
             return self.env.user.company_id and self.env.user.company_id.name or ''
         elif self.field_type == 'free_text':

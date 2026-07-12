@@ -507,7 +507,7 @@ class WahaWhatsappSession(models.Model):
             raise UserError(_("A partner, phone number or chat id is required to send a message."))
 
         if not phone and partner:
-            phone = partner.waha_whatsapp_number or partner.mobile or partner.phone or ''
+            phone = partner.waha_whatsapp_number or getattr(partner, 'mobile', '') or partner.phone or ''
         if not chat_id:
             chat_id = partner.waha_chat_id() if partner else self.phone_to_chat_id(phone)
         if not chat_id:
@@ -838,12 +838,12 @@ class WahaWhatsappSession(models.Model):
             return self.env['res.partner']
         mobile = phone if phone.startswith('+') else '+' + phone
         Partner = self.env['res.partner'].sudo()
-        return Partner.search([
-            '|', '|',
-            ('phone_sanitized', '=', mobile),
-            ('mobile', 'in', (mobile, phone)),
-            ('phone', 'in', (mobile, phone)),
-        ], limit=1)
+        # 'mobile' was removed from res.partner in Odoo 19 — only match it where it exists.
+        terms = [('phone_sanitized', '=', mobile), ('phone', 'in', (mobile, phone))]
+        if 'mobile' in Partner._fields:
+            terms.append(('mobile', 'in', (mobile, phone)))
+        domain = ['|'] * (len(terms) - 1) + terms
+        return Partner.search(domain, limit=1)
 
     def sync_contacts(self, only_named=True, update_names=False):
         """Import the phone's contact book into res.partner.
@@ -902,9 +902,12 @@ class WahaWhatsappSession(models.Model):
                         partner.write(vals)
                     updated += 1
                 else:
+                    # Odoo 19 dropped res.partner.mobile — store the number in
+                    # 'mobile' where it exists, otherwise in 'phone'.
+                    number_field = 'mobile' if 'mobile' in Partner._fields else 'phone'
                     Partner.create({
                         'name': name,
-                        'mobile': '+' + phone,
+                        number_field: '+' + phone,
                         'is_company': False,
                         'category_id': [(4, tag.id)],
                         'waha_synced_name': saved_name or name,
