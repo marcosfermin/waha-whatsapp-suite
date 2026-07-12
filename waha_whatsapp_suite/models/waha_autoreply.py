@@ -106,9 +106,11 @@ class WahaWhatsappAutoreply(models.Model):
         first matching rule's actions. Called from the inbound webhook."""
         if not message or message.direction != 'incoming':
             return
-        domain = [('active', '=', True)]
-        rules = self.search(domain)
+        rules = self.search([('active', '=', True)])
         text = message.text or ''
+        _logger.info("Auto-reply: evaluating %s active rule(s) for message %s (text=%r)",
+                     len(rules), message.id, text[:60])
+        matched_any = False
         for rule in rules:
             if rule.session_id and rule.session_id != message.session_id:
                 continue
@@ -116,6 +118,8 @@ class WahaWhatsappAutoreply(models.Model):
                 continue
             if not rule._matches(text):
                 continue
+            matched_any = True
+            _logger.info("Auto-reply rule '%s' matched message %s", rule.name, message.id)
             try:
                 rule._apply(message)
             except Exception:  # noqa: BLE001
@@ -123,6 +127,8 @@ class WahaWhatsappAutoreply(models.Model):
             rule.hit_count += 1
             if rule.stop_after_match:
                 break
+        if not matched_any:
+            _logger.info("Auto-reply: no rule matched message %s", message.id)
 
     def _apply(self, message):
         self.ensure_one()
@@ -165,15 +171,33 @@ class WahaWhatsappAutoreply(models.Model):
         if not (reply_text or attachments):
             return
         session = message.session_id
+
+        # A stale stored status must not silently block a reply: we just received
+        # a message on this session, so refresh the live status before giving up.
         if session.status != 'working':
+            try:
+                session.action_refresh_status()
+            except Exception:  # noqa: BLE001
+                pass
+        if session.status != 'working':
+            _logger.warning("Auto-reply '%s': session '%s' not working (status=%s) — reply skipped",
+                            self.name, session.name, session.status)
             return
+
+        # Reply to the contact's real number. WhatsApp increasingly delivers the
+        # inbound 'from' as an @lid address that WAHA cannot send to, so prefer
+        # the resolved phone (-> digits@c.us) and only fall back to a @c.us chat id.
+        reply_phone = message.phone_number or ''
+        reply_chat_id = message.chat_id if (message.chat_id or '').endswith('@c.us') else None
+        if not reply_phone and not reply_chat_id:
+            reply_chat_id = message.chat_id  # last resort (e.g. group @g.us)
 
         def _send(text, attachment):
             session.create_and_send(
                 text=text,
                 partner=partner,
-                chat_id=message.chat_id,
-                phone=message.phone_number,
+                phone=reply_phone or None,
+                chat_id=reply_chat_id,
                 attachment=attachment or False,
                 log_on_record=False,
             )

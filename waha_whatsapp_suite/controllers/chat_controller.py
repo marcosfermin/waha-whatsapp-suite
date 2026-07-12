@@ -235,6 +235,10 @@ class WhatsAppChatController(http.Controller):
             if not session.exists():
                 return {'success': False, 'error': 'Session not found'}
 
+            # Expand a canned-reply shortcut like "/hello" into its full text.
+            if text:
+                text = request.env['waha.whatsapp.canned.reply'].expand(text)
+
             attachment = None
             message_type = 'text'
 
