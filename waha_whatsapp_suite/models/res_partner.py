@@ -30,6 +30,12 @@ class ResPartner(models.Model):
              "automated messages. Set automatically when a contact replies with a "
              "stop keyword.",
     )
+    waha_synced_name = fields.Char(
+        'WhatsApp Synced Name', copy=False,
+        help="Internal: the phone's saved name as of the last sync. Used to detect "
+             "whether this contact's name was edited in Odoo, so a phone-side rename "
+             "only overwrites names that were not manually changed.",
+    )
 
     def waha_chat_id(self):
         """Return the WhatsApp chat id (e.g. '2011...@c.us') for this partner,

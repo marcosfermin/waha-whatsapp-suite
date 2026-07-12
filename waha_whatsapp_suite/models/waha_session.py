@@ -831,9 +831,14 @@ class WahaWhatsappSession(models.Model):
             ('phone', 'in', (mobile, phone)),
         ], limit=1)
 
-    def sync_contacts(self, only_named=True):
+    def sync_contacts(self, only_named=True, update_names=False):
         """Import the phone's contact book into res.partner.
-        Returns a {created, updated, skipped} summary. Idempotent."""
+        Returns a {created, updated, skipped} summary. Idempotent.
+
+        When ``update_names`` is set, an existing contact's name is refreshed
+        from the phone's saved name — but only if it was not manually edited in
+        Odoo (i.e. the current name still equals the phone name we stored last
+        sync in ``waha_synced_name``). Hand-edited names are always preserved."""
         self.ensure_one()
         Partner = self.env['res.partner'].sudo()
         tag = self._get_waha_import_tag()
@@ -867,8 +872,20 @@ class WahaWhatsappSession(models.Model):
                 name = saved_name or c.get('pushname') or c.get('shortName') or ('+' + phone)
                 partner = self._find_partner_by_phone(phone)
                 if partner:
+                    vals = {}
                     if tag not in partner.category_id:
-                        partner.category_id = [(4, tag.id)]
+                        vals['category_id'] = [(4, tag.id)]
+                    if update_names and saved_name:
+                        # Overwrite the name only when it still matches the phone
+                        # name we recorded last time (= not edited in Odoo).
+                        if (partner.name == (partner.waha_synced_name or '')
+                                and partner.name != saved_name):
+                            vals['name'] = saved_name
+                        # Track the phone's current saved name either way.
+                        if partner.waha_synced_name != saved_name:
+                            vals['waha_synced_name'] = saved_name
+                    if vals:
+                        partner.write(vals)
                     updated += 1
                 else:
                     Partner.create({
@@ -876,6 +893,7 @@ class WahaWhatsappSession(models.Model):
                         'mobile': '+' + phone,
                         'is_company': False,
                         'category_id': [(4, tag.id)],
+                        'waha_synced_name': saved_name or name,
                     })
                     created += 1
 

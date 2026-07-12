@@ -16,6 +16,11 @@ class WahaWhatsappSyncWizard(models.TransientModel):
         'Only saved contacts', default=True,
         help="Import only contacts that have a saved name on the phone, so you "
              "don't create a partner for every random number.")
+    update_contact_names = fields.Boolean(
+        'Update names from phone', default=False,
+        help="Refresh existing contacts' names from the phone's saved name. "
+             "Names you edited manually in Odoo are always kept — only names that "
+             "still match the last synced phone name are updated.")
 
     sync_messages = fields.Boolean('Sync Chats & Messages', default=True)
     message_limit = fields.Integer(
@@ -56,6 +61,7 @@ class WahaWhatsappSyncWizard(models.TransientModel):
                 'session_id': session.id,
                 'sync_contacts': self.sync_contacts,
                 'only_named_contacts': self.only_named_contacts,
+                'update_contact_names': self.update_contact_names,
                 'sync_messages': self.sync_messages,
                 'message_limit': self.message_limit,
                 'include_groups': self.include_groups,
@@ -73,7 +79,8 @@ class WahaWhatsappSyncWizard(models.TransientModel):
 
         parts = []
         if self.sync_contacts:
-            res = session.sync_contacts(only_named=self.only_named_contacts)
+            res = session.sync_contacts(only_named=self.only_named_contacts,
+                                        update_names=self.update_contact_names)
             parts.append(_("Contacts: %(created)s created, %(updated)s updated, %(skipped)s skipped")
                          % res)
         if self.sync_messages:
