@@ -635,7 +635,13 @@ class WahaWhatsappSession(models.Model):
         }
 
     def action_update_webhook(self):
-        """Clear all existing webhooks then register the new one"""
+        """Register our webhook exactly once, removing any duplicate copies of
+        the same URL (webhooks for other URLs are preserved).
+
+        WAHA delivers every message once per registered webhook, so duplicate
+        registrations of our URL cause auto-replies / inbound handlers to fire
+        multiple times. This method is idempotent and also cleans up any
+        duplicates a previous 'append' behaviour may have accumulated."""
         self.ensure_one()
 
         session_id = self.id
@@ -651,7 +657,7 @@ class WahaWhatsappSession(models.Model):
         waha_session_id = self.session_id
         events = [e.strip() for e in webhook_events.split(',')] if webhook_events else ['message']
 
-        # Fetch existing session config to preserve current webhooks
+        # Fetch existing session config to preserve webhooks for OTHER urls.
         existing_webhooks = []
         try:
             session_info = self._make_api_request(f'sessions/{waha_session_id}', 'GET')
@@ -659,13 +665,21 @@ class WahaWhatsappSession(models.Model):
         except Exception as e:
             _logger.debug(f"Could not fetch existing webhooks for session id={session_id}: {e}")
 
-        existing_webhooks.append({'url': webhook_url, 'events': events})
+        # Drop every existing entry pointing at our URL, then add a single fresh
+        # one — so our webhook is registered exactly once.
+        removed = len(existing_webhooks)
+        webhooks = [w for w in existing_webhooks
+                    if isinstance(w, dict) and w.get('url') != webhook_url]
+        removed -= len(webhooks)
+        webhooks.append({'url': webhook_url, 'events': events})
+        if removed:
+            _logger.info("Removed %s duplicate webhook registration(s) for %s", removed, webhook_url)
 
         self._make_api_request(f'sessions/{waha_session_id}', 'PUT', {
             'name': waha_session_id,
             'config': {
                 'noweb': {'store': {'enabled': True, 'full_sync': True}},
-                'webhooks': existing_webhooks,
+                'webhooks': webhooks,
             }
         })
 

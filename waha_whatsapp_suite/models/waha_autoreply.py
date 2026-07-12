@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _
+from datetime import timedelta
 import logging
 import re
 
@@ -191,6 +192,23 @@ class WahaWhatsappAutoreply(models.Model):
         reply_chat_id = message.chat_id if (message.chat_id or '').endswith('@c.us') else None
         if not reply_phone and not reply_chat_id:
             reply_chat_id = message.chat_id  # last resort (e.g. group @g.us)
+
+        # Backstop against duplicate inbound deliveries (e.g. a webhook retry):
+        # don't repeat the same auto-reply to the same contact within a short
+        # window, so the contact is never spammed even if this runs twice.
+        Message = self.env['waha.whatsapp.message'].sudo()
+        dedup = [
+            ('session_id', '=', session.id),
+            ('direction', '=', 'outgoing'),
+            ('create_date', '>=', fields.Datetime.now() - timedelta(seconds=30)),
+            ('text', '=', reply_text or ''),
+        ]
+        dedup.append(('phone_number', '=', reply_phone) if reply_phone
+                     else ('chat_id', '=', reply_chat_id))
+        if Message.search_count(dedup):
+            _logger.info("Auto-reply '%s': identical reply already sent to %s in the last 30s — skipping duplicate",
+                         self.name, reply_phone or reply_chat_id)
+            return
 
         def _send(text, attachment):
             session.create_and_send(
