@@ -81,8 +81,8 @@
     'installable': True,
     'auto_install': False,
     'application': True,
-    'price': 75.00,
+    'price': 250.00,
     'currency': 'USD',
-    'images': ['static/description/banner.gif'],
+    'images': ['static/description/banner.png'],
     'license': 'OPL-1',
 }
