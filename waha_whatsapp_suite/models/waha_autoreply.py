@@ -111,10 +111,11 @@ class WahaWhatsappAutoreply(models.Model):
         if pending:
             _logger.info("Auto-reply cron: %s message(s) to process", len(pending))
         for msg in pending:
-            # Clear the flag and COMMIT *before* sending. If the send or the
-            # process then fails/restarts, the message is not reprocessed, so a
-            # reply is never sent twice (at worst a single reply is missed).
-            msg.needs_autoreply = False
+            # Atomically claim the message (also handles the race with the
+            # queue_job worker) and COMMIT *before* sending, so the reply is
+            # never sent twice — at worst a single reply is missed on error.
+            if not msg._claim_autoreply():
+                continue
             self.env.cr.commit()
             try:
                 self._run_for_message(msg)
