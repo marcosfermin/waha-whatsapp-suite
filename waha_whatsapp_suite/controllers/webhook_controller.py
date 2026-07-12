@@ -140,6 +140,16 @@ class WhatsAppWebhookController(http.Controller):
             # Post-create side-effects must run exactly once even though WAHA
             # fires 'message' and 'message.any' for the same message.
             if message and message._claim_inbound_processing():
+                # CRITICAL: commit the claim before any network side effect.
+                # These handlers send real WhatsApp messages (auto-replies), and
+                # Odoo auto-retries the whole request on a serialization failure.
+                # Without a committed claim, every retry rolls back and RE-SENDS,
+                # flooding the contact. Committing here makes the retry see the
+                # message as already handled and skip the resend.
+                try:
+                    request.env.cr.commit()
+                except Exception as e:
+                    _logger.error(f"Could not commit inbound claim: {e}")
                 try:
                     request.env['waha.whatsapp.chat.thread'].sudo()._touch_from_message(message)
                 except Exception as e:
