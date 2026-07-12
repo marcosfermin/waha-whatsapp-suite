@@ -1,4 +1,4 @@
-# WhatsApp Suite (WAHA) for Odoo 19
+# WhatsApp Suite (WAHA) for Odoo 17
 
 A complete WhatsApp toolkit for Odoo built on the WAHA (WhatsApp HTTP API) service —
 live chat, in-Odoo QR pairing, marketing campaigns, automation, auto-replies, a shared
@@ -23,7 +23,7 @@ inbox, phone sync, and CRM / Sales / Project / Helpdesk integration.
 
 ## Requirements
 
-- Odoo 19.0
+- Odoo 17.0
 - Depends on the **CRM**, **Sales**, **Project**, and **Automation Rules** (`base_automation`) apps
 - Optional: the **Helpdesk** (Enterprise) app — its glue installs automatically via the
   companion `waha_whatsapp_helpdesk` module when both are present
@@ -163,6 +163,13 @@ waha_whatsapp_helpdesk/            # optional bridge — auto-installs with Help
   audio** (the reply text is sent first, then each file as a separate message), opt the
   contact out (STOP keyword), add tags, assign the conversation, or create a CRM lead /
   Helpdesk ticket.
+- **How replies are sent (flood-safe):** the webhook never sends inline — it flags the
+  message and the reply is dispatched **out of band**, so a webhook retry or duplicate
+  delivery can never flood the contact. By default a scheduled action (**Send WhatsApp
+  Auto-replies**, every minute) sends pending replies. For **near-instant** replies,
+  install the OCA **`queue_job`** module and run its job runner — the module auto-detects
+  it and dispatches an immediate background job per message (the cron stays as a fallback).
+  An atomic claim guarantees exactly one reply whether the job or the cron sends it.
 
 ### Shared Inbox & Canned Replies
 - **WhatsApp > Inbox**: a kanban/list of conversations (per session + chat) with

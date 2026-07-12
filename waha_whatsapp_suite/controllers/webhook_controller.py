@@ -151,8 +151,17 @@ class WhatsAppWebhookController(http.Controller):
                 if message.direction == 'incoming':
                     try:
                         message.needs_autoreply = True
+                        # If OCA queue_job is installed, dispatch an immediate job
+                        # for near-instant replies. Otherwise the 1-minute cron
+                        # (cron_run_autoreplies) picks up the flag. Either way the
+                        # atomic claim guarantees a single send.
+                        if 'queue.job' in request.env:
+                            message.with_delay(
+                                priority=20, max_retries=1,
+                                description="WhatsApp auto-reply",
+                            )._job_process_autoreply()
                     except Exception as e:
-                        _logger.error(f"Error flagging message for auto-reply: {e}")
+                        _logger.error(f"Error scheduling auto-reply: {e}")
 
         except Exception as e:
             _logger.error(f"Error processing incoming message: {e}")
