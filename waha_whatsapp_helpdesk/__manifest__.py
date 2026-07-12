@@ -16,6 +16,9 @@
     'data': [
         'views/helpdesk_ticket_views.xml',
     ],
+    'price': 50.00,
+    'currency': 'USD',
+    'images': ['static/description/icon.png'],
     'installable': True,
     'auto_install': True,
     'application': False,
